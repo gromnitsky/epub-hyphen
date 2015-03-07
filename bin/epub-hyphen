@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# We need a wrapper until iojs will decide that ES6 arrow functions are
+# fine w/o a harmony flag.
+
+# an equivalend of node __dirname
+pushd `dirname $0` > /dev/null
+__dirname=`pwd -P`
+popd > /dev/null
+
+node --harmony_arrow_functions "${__dirname}/../lib/main.js" "$@"
