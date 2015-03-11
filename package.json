@@ -13,6 +13,8 @@
     "hyphenation.en-us": "^0.2.1",
     "hyphenation.uk": "^0.2.1",
     "hypher": "^0.2.3",
+    "mkdirp": "^0.5.0",
+    "tmp": "0.0.25",
     "xml2js": "^0.4.5"
   }
 }
