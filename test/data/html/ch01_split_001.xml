@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='utf-8'?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta content="Лесь Подерв'янський" name="author"/>
+    <title>Лесь Подерв’янський :: Данко1</title>
+    <title>Лесь Подерв’янський :: Данко2</title>
+	<link href="page_styles.css" rel="stylesheet" type="text/css"/>
+	<link href="page_styles2.css" rel="stylesheet" type="text/css"/>
+</head>
+  <body class="calibre">
+	<h2 class="calibre7" id="calibre_pb_1" lang="en">Characters</h2>
+	<hr/>
+	<br/>
+	<br/>
+
+	<table class="my-ch-table">
+	  <tbody class="calibre8">
+        <tr class="calibre9">
+          <td class="calibre10">Данко</td>
+          <td class="calibre11"/>
+        </tr>
+
+        <tr class="calibre9">
+          <td class="calibre10">Натовп</td>
+          <td class="calibre11"/>
+        </tr>
+	  </tbody>
+	</table>
+
+	<p>наприклад</p>
+
+
+	</body></html>
