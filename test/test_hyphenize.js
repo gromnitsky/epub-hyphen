@@ -79,7 +79,7 @@ suite('Hyphenizor', function() {
 		let conf = {}
 		let h = new Hyphenizor('<', conf)
 		h.parse().catch(function(e) {
-			assert(e.message.match(/Unclosed root tag/))
+			assert(e.message.match(/unexpected end/i))
 			done()
 		});
 	})
@@ -87,21 +87,23 @@ suite('Hyphenizor', function() {
 	test('parse empty input', function(done) {
 		let conf = {}
 		let h = new Hyphenizor('', conf)
-		h.parse().then(function(r) {
-			assert.equal('', h.toString())
+		h.parse().catch(function(e) {
+			assert(e.message.match(/unexpected end/i))
 			done()
-		}).catch(function(e) {
-			console.log(e)
-		})
+		});
 	})
 
-	test('parse too simple xml', function(done) {
-		let conf = {}
+	test('parse simple xml', function(done) {
+		let conf = {lang: 'en'}
 		let h = new Hyphenizor('<foo>characters</foo>', conf)
-		h.parse().catch(function(e) {
-			assert(e.message.match(/too simple xml/))
+		h.parse().then(function(r) {
+			assert.equal(`<?xml version='1.0' encoding='utf-8'?>
+<foo>char­ac­ters</foo>`, h.toString())
 			done()
-		})
+		}).catch(function(e) {
+			console.error(e.message)
+			done()
+		});
 	})
 
 	test('parse 01 no lang', function(done) {
@@ -110,7 +112,7 @@ suite('Hyphenizor', function() {
 		h.parse().catch(function(e) {
 			assert(e.message.match(/no support for .+ lang/))
 			done()
-		})
+		});
 	})
 
 	test('parse 01', function(done) {
@@ -118,29 +120,26 @@ suite('Hyphenizor', function() {
 		let h = new Hyphenizor('<html><foo>characters</foo></html>', conf)
 		h.parse().then(function(r) {
 //			console.log(h.toString())
-			assert.equal(`<?xml version="1.0" encoding="UTF-8"?>
-<html>
-  <foo>char­ac­ters</foo>
-</html>`, h.toString())
+			assert.equal(`<?xml version='1.0' encoding='utf-8'?>
+<html><foo>char­ac­ters</foo></html>`, h.toString())
 			done()
 		}).catch(function(e) {
-			console.log(e)
+			console.error(e.message)
+			done()
 		})
 	})
 
 	test('parse 02', function(done) {
 		let conf = {lang_detect: true}
-		let h = new Hyphenizor('<html lang="uk">Данко<foo lang="en">characters</foo></html>', conf)
+		let h = new Hyphenizor('<html lang="uk"><foo lang="en">characters</foo>Данко</html>', conf)
 		h.parse().then(function(r) {
 //			console.log(h.toString())
-			assert.equal(`<?xml version="1.0" encoding="UTF-8"?>
-<html lang="uk">
-  Дан­ко
-  <foo lang="en">char­ac­ters</foo>
-</html>`, h.toString())
+			assert.equal(`<?xml version='1.0' encoding='utf-8'?>
+<html lang="uk"><foo lang="en">char­ac­ters</foo>Дан­ко</html>`, h.toString())
 			done()
 		}).catch(function(e) {
-			console.log(e)
+			console.error(e.message)
+			done()
 		})
 	})
 
