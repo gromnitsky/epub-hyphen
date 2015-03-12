@@ -130,7 +130,7 @@ suite('Hyphenizor', function() {
 
 	test('parse 02', function(done) {
 		let conf = {lang_detect: true}
-		let h = new Hyphenizor('<html lang="uk"><foo lang="en">characters</foo>Данко</html>', conf)
+		let h = new Hyphenizor('<html lang="uk">Данко<foo lang="en">characters</foo></html>', conf)
 		h.parse().then(function(r) {
 //			console.log(h.toString())
 			assert.equal(`<?xml version="1.0" encoding="UTF-8"?>
