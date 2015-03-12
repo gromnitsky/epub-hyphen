@@ -72,3 +72,12 @@ Practical req:
 * menuitem
 
 User may add its own tags to the ignored list w/ -i opt.
+
+## Signals
+
+* SIGTERM
+* SIGINT
+* SIGHUP
+* SIGBREAK (Windows only)
+
+Deletes all temporal data & exits.
