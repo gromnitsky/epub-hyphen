@@ -7,6 +7,8 @@ var assert = require('assert')
 var fs = require('fs')
 var spawnSync = require('child_process').spawnSync
 
+var rimraf = require('rimraf')
+
 suite('epub', function() {
 
 	setup(function() {
@@ -63,7 +65,7 @@ suite('Zip', function() {
 	})
 
 	suiteTeardown(function() {
-		fs.rmdirSync("tmp")
+		rimraf.sync("tmp")
 	})
 
 	test('cleanup', function (done) {
