@@ -4,6 +4,8 @@ var epub = require('../lib/epub')
 var u = require('../lib/utils')
 
 var assert = require('assert')
+var fs = require('fs')
+var spawnSync = require('child_process').spawnSync
 
 suite('epub', function() {
 
@@ -45,8 +47,109 @@ suite('epub', function() {
 		assert(epub.findSync(".").length > r.length)
 	})
 
-	test('findSync fail', function () {
-//		console.log(r)
+})
+
+suite('Zip', function() {
+
+	setup(function() {
+		this.z = new epub.Zip("tmp")
+	})
+
+	teardown(function(done) {
+		this.z.cleanup(function(name) {
+//			console.log(`rm -r ${name}`)
+			done()
+		})
+	})
+
+	suiteTeardown(function() {
+		fs.rmdirSync("tmp")
+	})
+
+	test('cleanup', function (done) {
+		let zz = new epub.Zip("tmp")
+
+		assert.throws(function() {
+			zz.cleanup()
+		}, /callback is required/)
+
+		zz.cleanup(function(name) {
+			done()
+		})
+	})
+
+	test('unzip', function () {
+		let r = this.z.unzip()
+		assert.equal(9, r.status)
+
+		r = this.z.unzip('data/zip/broken.zip')
+		assert.equal(9, r.status)
+
+		r = this.z.unzip('data/zip/meta-is-missing.zip')
+		assert.equal(0, r.status)
+	})
+
+	test('content_opf no file', function (done) {
+		let r = this.z.unzip('data/zip/meta-is-missing.zip')
+		assert.equal(0, r.status)
+
+		this.z.content_opf().catch(function(e) {
+			assert(e.message.match(/no such file or directory, open .+\/META-INF\/container.xml/))
+			done()
+		})
+	})
+
+	test('content_opf', function (done) {
+		let r = this.z.unzip('data/zip/meta-broken.zip')
+		assert.equal(0, r.status)
+
+		this.z.content_opf().then(function(r) {
+			assert(r.match(/.+\/epub\/SVG\/Sandman.opf$/))
+			done()
+		})
+	})
+
+	test('lang no file', function (done) {
+		let r = this.z.unzip('data/zip/meta-broken.zip')
+		assert.equal(0, r.status)
+
+		this.z.lang().catch(function(e) {
+			assert(e.message.match(/no such file or directory, open .+\/epub\/SVG\/Sandman.opf/))
+			done()
+		})
+	})
+
+	test('lang no lang', function (done) {
+		let r = this.z.unzip('data/zip/meta-no-lang.zip')
+		assert.equal(0, r.status)
+
+		this.z.lang().then(function(r) {
+			assert.equal(null, r)
+			done()
+		})
+	})
+
+	test('lang', function (done) {
+		let r = this.z.unzip('data/zip/meta.zip')
+		assert.equal(0, r.status)
+
+		this.z.lang().then(function(r) {
+			assert.equal('en', r)
+			done()
+		})
+	})
+
+	test('zip', function() {
+		let r = this.z.unzip('data/zip/meta.zip')
+		assert.equal(0, r.status)
+
+		r = this.z.zip("tmp/meta.zip")
+		assert.equal(0, r.status)
+
+		r = spawnSync('zipcmp', ['data/zip/meta.zip', "tmp/meta.zip"])
+		assert.equal(0, r.status)
+
+		fs.unlinkSync("tmp/meta.zip")
 	})
 
 })
