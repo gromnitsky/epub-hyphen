@@ -2,11 +2,6 @@
 
 Hyphenate epub or xhtml files.
 
-## Requirements
-
-* iojs 1.5.1
-* zip/unzip CLI utils in the PATH
-
 ## Usage
 
 	epub-hyphen -l lang [-d] [-i tag1,tag2,...] [-o output] [input]
@@ -34,6 +29,14 @@ pattern for the detected lang.
 See the default list in `lib/hyphenize.js`.
 
 User may add its own tags to the ignored list w/ `-i` opt.
+
+## Requirements
+
+* iojs 1.5.1
+* CLI utils in the PATH:
+  - readlink
+  - zip
+  - unzip
 
 ## Signals
 
