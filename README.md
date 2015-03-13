@@ -1,77 +1,39 @@
+# epub-hyphen
+
+Hyphenate epub or xhtml files.
+
+## Requirements
+
+* iojs 1.5.1
+* zip/unzip CLI utils in the PATH
+
 ## Usage
 
-	epub-hyphen 
+	epub-hyphen -l lang [-d] [-i tag1,tag2,...] [-o output] [input]
 
-input: html/xml file or epub
+Input: xhtml file or epub. Input is never modified.
 
-Input is never modified.
+For epub, the util unzips it to a tmp dir & processes every (x)html file
+in the dir, then zips the dir again.
 
-For epub we unzip it to a tmp dir & process every (x)html file in the
-dir, then zip the dir again.
+There is no default language. You must specify `-l` opt for stdin. For
+epub files, the util tries to guess the lang & aborts if it can't & you
+haven't provided `-l` opt.
 
-Default language is 'en'.
+If xhtml files (standalones or inside of an epub file) contain `lang`
+attribute, you may use `-d` opt for a language detection. The util
+aborts immidiately if the detection fails or if it doesn't have a proper
+pattern for the detected lang.
 
-1 language for the whole input or w/ -d try to detect the lang for a
-subtree. Abort immidiately if the detection fails or if we don't have a
-proper pattern for the detected lang.
+## [TODO] Supported Languages
 
-## Ignored tags
+	$ epub-hyphen --lang-list
 
-Attributes are ignored.
+## Ignored Tags
 
-This tags & their subtrees are always ignored:
+See the default list in `lib/hyphenize.js`.
 
-html 4.1 req:
-
-* applet
-* base
-* basefont
-* br
-* frame
-* frameset
-* iframe
-* param
-* script
-
-Practical req:
-
-* head
-* style
-* hr
-* code
-* var
-* pre
-* kbd
-* img
-
-* embed (?)
-* object
-* video
-* audio
-* track
-* canvas
-* source
-
-* input
-* output
-* progress
-* meter
-* marquee
-* button
-* select
-* datalist
-* optgroup
-* option
-* textarea
-* keygen
-
-* map
-* area
-
-* menu
-* menuitem
-
-User may add its own tags to the ignored list w/ -i opt.
+User may add its own tags to the ignored list w/ `-i` opt.
 
 ## Signals
 
@@ -81,3 +43,48 @@ User may add its own tags to the ignored list w/ -i opt.
 * SIGBREAK (Windows only)
 
 Deletes all temporal data & exits.
+
+## Exit Status
+
+<table>
+<tbody>
+
+<tr>
+<td>0</td>
+<td>Success</td>
+</tr>
+
+<tr>
+<td>1</td>
+<td>Any kind of error</td>
+</tr>
+
+</tbody>
+</table>
+
+## Files
+
+<table>
+<tbody>
+
+<tr>
+<td>`/tmp/epub-hyphen-XXXXXX/epub/`</td>
+<td>epub contents</td>
+</tr>
+
+<tr>
+<td>`/tmp/epub-hyphen-XXXXXX/*.log`</td>
+<td>log files</td>
+</tr>
+
+</tbody>
+</table>
+
+## Bugs
+
+* Untested under Windows.
+* No mapping between internal lang names & BCP 47.
+
+## License
+
+AGPL-3.0.
