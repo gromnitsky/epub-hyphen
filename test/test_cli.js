@@ -7,9 +7,12 @@ var assert = require('assert')
 var fs = require('fs')
 var spawnSync = require('child_process').spawnSync
 
+var mkdirp = require('mkdirp')
+var rimraf = require('rimraf')
+
 var cmd = '../bin/epub-hyphen'
 
-suite('CLI', function() {
+suite('CLI xml', function() {
 
 	setup(function() {
 	})
@@ -66,6 +69,35 @@ suite('CLI', function() {
 		let r = spawnSync(cmd,  ['-l', 'en', 'doesn not exist'])
 		assert.equal(1, r.status)
 		assert(r.stderr.toString().match(/no such file or directory, open 'doesn not exist'/));
+	})
+
+})
+
+suite('CLI epub', function() {
+
+	setup(function() {
+		mkdirp("tmp")
+	})
+
+	teardown(function() {
+		rimraf.sync("tmp")
+	})
+
+	test('epub in stdin', function () {
+		let r = spawnSync(cmd,  {input: fs.readFileSync('data/epub/Les_Podervyansky--Plays.epub')})
+		assert.equal(1, r.status)
+		assert(r.stderr.toString().match(/epub in stdin/));
+	})
+
+	test('simple.epub', function () {
+		let r = spawnSync(cmd,  ["-d", '-o', 'tmp/simple.epub', 'data/epub/simple.epub'])
+		assert.equal(0, r.status)
+		assert.equal('', r.stdout.toString())
+		assert.equal('', r.stderr.toString())
+
+		let s = fs.statSync('tmp/simple.epub')
+//		u.inspect(s)
+		assert(s.size > 2000 && s.size < 4000)
 	})
 
 })
