@@ -25,7 +25,7 @@ attribute, you may use `-d` opt for a language detection. The util
 aborts immidiately if the detection fails or if it doesn't have a proper
 pattern for the detected lang.
 
-## [TODO] Supported Languages
+## Supported Languages
 
 	$ epub-hyphen --lang-list
 
