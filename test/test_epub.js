@@ -87,6 +87,10 @@ suite('Zip', function() {
 
 		r = this.z.unzip('data/zip/meta-is-missing.zip')
 		assert.equal(0, r.status)
+
+		this.z.cmd_unzip = 'does not exist'
+		r = this.z.unzip('data/zip/meta-is-missing.zip')
+		assert.equal('ENOENT', r.error.code)
 	})
 
 	test('content_opf no file', function (done) {
@@ -150,6 +154,10 @@ suite('Zip', function() {
 		assert.equal(0, r.status)
 
 		fs.unlinkSync("tmp/meta.zip")
+
+		this.z.cmd_zip = 'does not exist'
+		r = this.z.zip("tmp/meta.zip")
+		assert.equal('ENOENT', r.error.code)
 	})
 
 })
