@@ -1,10 +1,10 @@
 TEST_OPTS :=
 mocha := node_modules/.bin/mocha
-mocha_opt := --harmony --harmony_arrow_functions -u tdd
+mocha_opt := -u tdd
 
 .PHONY: test
 test: node_modules
-	@cd test && ../$(mocha) $(mocha_opt) test*.js $(TEST_OPTS)
+	@cd test && ../$(mocha) $(mocha_opt) test*.js $(TEST_OPT)
 
 node_modules: package.json
 	npm install
