@@ -1,10 +1,1 @@
-#!/bin/sh
-
-# We need a wrapper until iojs will decide that ES6 arrow functions are
-# fine w/o a harmony flag.
-
-__filename=`readlink -f $0`
-__dirname=`dirname ${__filename}`
-
-exec node --harmony_classes --harmony_arrow_functions \
-	 "${__dirname}/../lib/main.js" "$@"
+../lib/main.js

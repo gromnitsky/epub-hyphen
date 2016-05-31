@@ -32,9 +32,8 @@ User may add its own tags to the ignored list w/ `-i` opt.
 
 ## Requirements
 
-* iojs 1.5.1
+* node 6.2
 * CLI utils in the PATH:
-  - readlink
   - zip
   - unzip
 
@@ -85,7 +84,6 @@ Deletes all temporal data & exits.
 
 ## Bugs
 
-* Untested under Windows.
 * No mapping between internal lang names & BCP 47.
 
 ## License
