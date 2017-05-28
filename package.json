@@ -58,7 +58,7 @@
 		"hyphenation.te": "~0.2.1",
 		"hyphenation.tr": "~0.2.1",
 		"hyphenation.uk": "~0.2.1",
-		"hypher": "~0.2.3",
+		"hypher": "~0.2.5",
 		"mkdirp": "~0.5.0",
 		"rimraf": "~2.3.2",
 		"tmp": "~0.0.25",
