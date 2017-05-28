@@ -85,6 +85,9 @@ Deletes all temporal data & exits.
 ## Bugs
 
 * No mapping between internal lang names & BCP 47.
+* The contents of `<style>` blocks wrapped in CDATA are silently
+  dropped.
+* Cannot read from stdin under Windows.
 
 ## License
 
