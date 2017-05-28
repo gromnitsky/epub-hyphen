@@ -1,7 +1,7 @@
 'use strict';
 
 var epub = require('../lib/epub')
-var u = require('../lib/utils')
+let magic = require('../lib/magic')
 
 var assert = require('assert')
 var fs = require('fs')
@@ -14,30 +14,21 @@ suite('epub', function() {
     setup(function() {
     })
 
-    test('is_epub', function () {
-	assert.equal(false, epub.is_epub())
+    test('is zip', function(done) {
+	let stream = fs.createReadStream('data/epub/Les_Podervyansky--Plays.epub')
+	magic.check_stream(stream, magic.is_zip, (err, result) => {
+	    assert.equal(err, null)
+	    assert(result)
+	    done()
+	})
+    })
 
-	let b1 = new Buffer(1)
-	let b2 = new Buffer(1)
-	assert.equal(true, epub.is_epub([b1, b2]))
-
-	assert.equal(false, epub.is_epub([b1]))
-
-	b1.fill("P")
-	b2.fill("K")
-	assert.throws(function() {
-	    epub.is_epub([b1, b2])
-	}, /epub/)
-
-	let b3 = new Buffer(2)
-	b3.write("PK")
-	assert.throws(function() {
-	    epub.is_epub([b3])
-	}, /epub/)
-
-	b3.write("12")
-	assert.doesNotThrow(function() {
-	    assert.equal(true, epub.is_epub([b3]))
+    test('not zip', function(done) {
+	let stream = fs.createReadStream('data/zip/broken.zip')
+	magic.check_stream(stream, magic.is_zip, (err, result) => {
+	    assert.equal(err, null)
+	    assert.equal(result, false)
+	    done()
 	})
     })
 

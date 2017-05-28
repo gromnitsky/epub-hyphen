@@ -1,0 +1,9 @@
+#!/usr/bin/env node
+
+let magic = require('../lib/magic')
+
+magic.check_stream(process.stdin, magic.is_zip, (err, is_zip) => {
+    console.error('err: ' + err)
+    console.error('zip: ' + is_zip)
+//    process.stdin.pipe(process.stdout)
+})

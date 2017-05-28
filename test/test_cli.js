@@ -86,7 +86,7 @@ suite('CLI epub', function() {
 	test('epub in stdin', function () {
 		let r = spawnSync(cmd,  {input: fs.readFileSync('data/epub/Les_Podervyansky--Plays.epub')})
 		assert.equal(1, r.status)
-		assert(r.stderr.toString().match(/epub in stdin/));
+		assert(r.stderr.toString().match(/epubs aren't allowed/));
 	})
 
 	test('simple.epub', function () {
