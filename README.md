@@ -6,19 +6,19 @@ Hyphenate epub or xhtml files.
 
 	epub-hyphen -l lang [-d] [-i tag1,tag2,...] [-o output] [input]
 
-Input: xhtml file or epub. Input is never modified.
+Input: xhtml file or epub. The input is never modified.
 
-For epub, the util unzips it to a tmp dir & processes every (x)html file
-in the dir, then zips the dir again.
+For a epub, the util unzips it to a tmp dir & processes every (x)html
+file in the dir, then zips the dir again.
 
-There is no default language. You must specify `-l` opt for stdin. For
-epub files, the util tries to guess the lang & aborts if it can't & you
-haven't provided `-l` opt.
+There is no default language. You must specify `-l` opt for the
+stdin. For epub files, the util tries to guess the lang & aborts if
+(a) it can't & (b) you haven't provided `-l` opt.
 
 If xhtml files (standalones or inside of an epub file) contain `lang`
-attribute, you may use `-d` opt for a language detection. The util
-aborts immidiately if the detection fails or if it doesn't have a proper
-pattern for the detected lang.
+attribute, you may use `-d` opt for the language detection. The util
+aborts immidiately if the detection fails or if it doesn't have a
+proper pattern for the detected lang.
 
 ## Supported Languages
 
@@ -28,11 +28,11 @@ pattern for the detected lang.
 
 See the default list in `lib/hyphenize.js`.
 
-User may add its own tags to the ignored list w/ `-i` opt.
+A user may add its own tags to the ignored list w/ `-i` opt.
 
 ## Requirements
 
-* node 6.2
+* node 6.10.3
 * CLI utils in the PATH:
   - zip
   - unzip
@@ -85,9 +85,6 @@ Deletes all temporal data & exits.
 ## Bugs
 
 * No mapping between internal lang names & BCP 47.
-* The contents of `<style>` blocks wrapped in CDATA are silently
-  dropped.
-* Cannot read from stdin under Windows.
 
 ## License
 
