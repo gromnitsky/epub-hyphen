@@ -20,6 +20,16 @@ attribute, you may use `-d` opt for the language detection. The util
 aborts immidiately if the detection fails or if it doesn't have a
 proper pattern for the detected lang.
 
+A smoke test:
+
+~~~
+$ echo '<a><code>foobar</code>foobar</a>' | epub-hyphen -l en
+<?xml version='1.0' encoding='utf-8'?>
+<a><code>foobar</code>foo-bar</a>
+~~~
+
+Note how the string in the `code` node wasn't hyphenated.
+
 ## Supported Languages
 
 	$ epub-hyphen --lang-list
@@ -85,6 +95,7 @@ Deletes all temporal data & exits.
 ## Bugs
 
 * No mapping between internal lang names & BCP 47.
+* Empty .x?html files are treated as an invalid xml.
 
 ## License
 
