@@ -1,0 +1,13 @@
+{
+    "version": "1.0.0",
+    "description": "Hyphenate epub or xhtml files",
+
+    "dependencies": {
+        "commander": "^9.4.1",
+        "hyphenation.en-us": "^0.2.1",
+        "hyphenation.it": "^0.2.1",
+        "hyphenation.uk": "^0.2.1",
+        "hypher": "^0.2.5",
+        "xamel": "^0.3.1"
+    }
+}
