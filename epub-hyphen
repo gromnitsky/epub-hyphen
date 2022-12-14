@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 
+let util = require('util')
 let fs = require('fs')
 let {program} = require('commander')
 let pkg = require('./package.json')
+let log = util.debuglog(pkg.name)
 let lib = require('./lib')
 
 program
@@ -11,6 +13,8 @@ program
     .option('-l <str>', "a 2-letter default language, if <html lang='xx'> attribute is absent; this does NOT override already present lang= attributes")
     .option('-i <str>', 'a comma-separated list of tags to ignore')
     .option('--lang-list', 'list all supported languages')
+
+if (!log.enabled) program.addHelpText('afterAll', `\nset NODE_DEBUG=${pkg.name} to enable debug log`)
 program.parse()
 
 if (program.opts().langList) {
@@ -21,23 +25,35 @@ if (program.opts().langList) {
 }
 
 read(program.args[0]).then( xml => {
-    return lib.hyphenate(xml, program.opts())
-}).then( str => {
-    process.stdout.write(str)
+    let op = xml.zip ? 'hyphenate_zip' : 'hyphenate_xhtml'
+    return lib[op](xml, program.opts())
+
+}).then( r => {
+    process.stdout.write(r)     // either a new zip or a tranformed xhtml
+
 }).catch( err => {
-    console.error(err.message)
+    console.error(log.enabled ? err : err.message)
     process.exitCode = 1
 })
 
 function read(file) {
     let stream = file ? fs.createReadStream(file) : process.stdin
-    let data = []
+    let zip_allowed = stream !== process.stdin
+    let is_zip = null
+    let buf = []
     return new Promise( (resolve, reject) => {
         stream.on('error', reject)
-        stream.on('data', chunk => data.push(chunk))
+        stream.on('data', chunk => {
+            buf.push(chunk)
+            is_zip = is_zip === null ? lib.is_zip(buf) : is_zip
+
+            if (!zip_allowed && is_zip)
+                stream.destroy(new Error("no zip data allowed in this context"))
+        })
         stream.on('end', () => resolve({
             filename: file || '[stdin]',
-            text: Buffer.concat(data).toString()
+            text: Buffer.concat(buf).toString(),
+            zip: is_zip
         }))
     })
 }

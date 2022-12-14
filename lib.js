@@ -1,9 +1,13 @@
 let xamel = require('xamel')
 let CData = require('xamel/lib/xml').CData
 let Hypher = require('hypher')
-//let util = require('util')
 
-function hyphenate(xml, opt) {
+function is_zip(chunks) {
+    let buf = Buffer.concat(chunks)
+    return buf.length > 2 && buf.slice(0, 2).toString() === "PK"
+}
+
+function hyphenate_xhtml(xml, opt) {
     return new Promise( (resolve, reject) => {
         xamel.parse(xml.text, {trim: false, cdata: true}, function(err, doc) {
             if (err) {
@@ -11,7 +15,6 @@ function hyphenate(xml, opt) {
                 return
             }
 
-            //console.log(util.inspect(doc, {depth: Infinity}))
             try {
                 transform(doc, ignored_tags(opt.i), hyphenate_string, opt.l)
             } catch (err) {
@@ -24,15 +27,10 @@ function hyphenate(xml, opt) {
 }
 
 function ignored_tags(str) {
-    let additional = (str || '').split(',').map(s => s.trim()).filter(Boolean)
-    let list = ["applet", "base", "basefont", "br", "frame", "frameset",
-              "iframe", "param", "script", "head", "style", "hr",
-              "code", "var", "pre", "kbd", "img", "embed", "object",
-              "video", "audio", "track", "canvas", "source", "input",
-              "output", "progress", "meter", "marquee", "button",
-              "select", "datalist", "optgroup", "option", "textarea",
-              "keygen", "map", "area", "menu", "menuitem"]
-    return list.concat(additional)
+    let def = ["script", "template", "code", "var", "pre", "kbd",
+               "textarea", "tt", "xmp", "samp"]
+    let from_user = (str || '').split(',').map(s => s.trim()).filter(Boolean)
+    return def.concat(from_user)
 }
 
 function hyphenate_string(text, language) {
@@ -67,16 +65,17 @@ function transform(node, ignored_tags, callback, language) {
 }
 
 function protect_style(node) {
-    // either a node has an empty content or it's been CDATA'ed already
     let text = node.text()
+    // either a node has an empty content or it's been CDATA'ed already
     if (!text.trim().length) return
 
     // valid xml, but invalid xhtml
     node.children.forEach( kid => {
-        if (kid.constructor.name !== 'String')
+        if (kid.constructor.name === 'Tag')
             throw new Error(`<style> can't have descendent tags, but it has <${kid.name}>`)
     })
 
+    // FIXME: existing CDATA may be interleaved with text
     node.children = [new CData(text)]
 }
 
@@ -91,4 +90,4 @@ class EpubHyphenError extends Error {
     }
 }
 
-module.exports = { ignored_tags, hyphenate, transform, EpubHyphenError }
+module.exports = { is_zip, hyphenate_xhtml, EpubHyphenError }

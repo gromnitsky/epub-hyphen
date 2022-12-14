@@ -1,6 +1,7 @@
 {
+    "name": "epub-hyphen",
     "version": "1.0.0",
-    "description": "Hyphenate epub or xhtml files",
+    "description": "Hyphenate text nodes in epub or xhtml files",
 
     "dependencies": {
         "commander": "^9.4.1",
