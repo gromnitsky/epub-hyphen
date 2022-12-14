@@ -1,6 +1,10 @@
+let fs = require('fs')
+let os = require('os')
+let path = require('path')
 let xamel = require('xamel')
 let CData = require('xamel/lib/xml').CData
 let Hypher = require('hypher')
+let spawnSync = require('child_process').spawnSync
 
 function is_zip(chunks) {
     let buf = Buffer.concat(chunks)
@@ -11,14 +15,14 @@ function hyphenate_xhtml(xml, opt) {
     return new Promise( (resolve, reject) => {
         xamel.parse(xml.text, {trim: false, cdata: true}, function(err, doc) {
             if (err) {
-                reject(new EpubHyphenError(xml.filename, err))
+                reject(new EpubHyphenError(xml.file, err))
                 return
             }
 
             try {
                 transform(doc, ignored_tags(opt.i), hyphenate_string, opt.l)
             } catch (err) {
-                reject(new EpubHyphenError(xml.filename, err))
+                reject(new EpubHyphenError(xml.file, err))
             }
 
             resolve(xamel.serialize(doc))
@@ -90,4 +94,41 @@ class EpubHyphenError extends Error {
     }
 }
 
-module.exports = { is_zip, hyphenate_xhtml, EpubHyphenError }
+class Epub {
+    constructor(xml, opt = {}) {
+        this.file = xml.file
+        Object.assign(opt, {
+            zip: 'zip',
+            unzip: 'unzip',
+            workdir_prefix: path.join(os.tmpdir(), 'epub-hyphen.')
+        })
+        this.opt = opt
+        this.log = this.opt.log
+
+        this.workdir = fs.mkdtempSync(this.opt.workdir_prefix)
+        this.logfile = fs.openSync(path.join(this.workdir, 'log.txt'), 'w+')
+        this.epubdir = path.join(this.workdir, 'files')
+
+        process.on('exit', this.cleanup.bind(this))
+    }
+
+    cleanup() {
+        this.log('cleanup')
+//        fs.rmdirSync(this.workdir, { recursive: true, force: true })
+    }
+
+    unzip() {
+        this.log(`unpack ${this.file} to ${this.epubdir}`)
+        spawnSync(this.opt.unzip, [this.file, '-d', this.epubdir],
+                  { stdio: [0, this.logfile, this.logfile] })
+    }
+}
+
+function hyphenate_zip(file, opt) {
+    let epub = new Epub(file, opt)
+    epub.unzip()
+
+    return ''
+}
+
+module.exports = { is_zip, hyphenate_zip, hyphenate_xhtml, EpubHyphenError }

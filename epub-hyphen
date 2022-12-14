@@ -26,7 +26,7 @@ if (program.opts().langList) {
 
 read(program.args[0]).then( xml => {
     let op = xml.zip ? 'hyphenate_zip' : 'hyphenate_xhtml'
-    return lib[op](xml, program.opts())
+    return lib[op](xml, Object.assign({log}, program.opts()))
 
 }).then( r => {
     process.stdout.write(r)     // either a new zip or a tranformed xhtml
@@ -41,19 +41,32 @@ function read(file) {
     let zip_allowed = stream !== process.stdin
     let is_zip = null
     let buf = []
+
     return new Promise( (resolve, reject) => {
-        stream.on('error', reject)
+        let success = () => {
+            resolve({
+                file: file || '[stdin]',
+                text: Buffer.concat(buf).toString(),
+                zip: is_zip
+            })
+        }
+
         stream.on('data', chunk => {
             buf.push(chunk)
             is_zip = is_zip === null ? lib.is_zip(buf) : is_zip
 
-            if (!zip_allowed && is_zip)
-                stream.destroy(new Error("no zip data allowed in this context"))
+            if (is_zip) {
+                if (zip_allowed) {
+                    // close the stream, because we process the file
+                    // in Epub.unzip() later on
+                    stream.close()
+                } else {
+                    stream.destroy(new Error("no zip data allowed from stdin"))
+                }
+            }
         })
-        stream.on('end', () => resolve({
-            filename: file || '[stdin]',
-            text: Buffer.concat(buf).toString(),
-            zip: is_zip
-        }))
+        stream.on('error', reject)
+        stream.on('close', success)
+//        stream.on('end', success)
     })
 }
