@@ -24,9 +24,9 @@ if (program.opts().langList) {
     process.exit()
 }
 
-read(program.args[0]).then( xml => {
-    let op = xml.zip ? 'hyphenate_zip' : 'hyphenate_xhtml'
-    return lib[op](xml, Object.assign({log}, program.opts()))
+read(program.args[0]).then( input => {
+    let op = input.zip ? 'hyphenate_zip' : 'hyphenate_xhtml'
+    return lib[op](input, Object.assign({log}, program.opts()))
 
 }).then( r => {
     process.stdout.write(r)     // either a new zip or a tranformed xhtml
@@ -61,12 +61,12 @@ function read(file) {
                     // in Epub#unzip() later on
                     stream.close()
                 } else {
-                    stream.destroy(new Error("no zip data allowed from stdin"))
+                    stream.destroy(new Error("zip data isn't allowed from stdin"))
                 }
             }
         })
         stream.on('error', reject)
         stream.on('close', success)
-//        stream.on('end', success)
+        stream.on('end', success)
     })
 }

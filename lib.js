@@ -11,18 +11,18 @@ function is_zip(chunks) {
     return buf.length > 2 && buf.slice(0, 2).toString() === "PK"
 }
 
-function hyphenate_xhtml(xml, opt) {
+function hyphenate_xhtml(input, opt) {
     return new Promise( (resolve, reject) => {
-        xamel.parse(xml.text, {trim: false, cdata: true}, function(err, doc) {
+        xamel.parse(input.text, {trim: false, cdata: true}, function(err, doc) {
             if (err) {
-                reject(new EpubHyphenError(xml.file, err))
+                reject(new EpubHyphenError(input.file, err))
                 return
             }
 
             try {
                 transform(doc, ignored_tags(opt.i), hyphenate_string, opt.l)
             } catch (err) {
-                reject(new EpubHyphenError(xml.file, err))
+                reject(new EpubHyphenError(input.file, err))
             }
 
             resolve(xamel.serialize(doc))
@@ -108,8 +108,8 @@ class EpubHyphenError extends Error {
 }
 
 class Epub {
-    constructor(xml, opt = {}) {
-        this.file = xml.file
+    constructor(input, opt = {}) {
+        this.file = input.file
         Object.assign(opt, {
             zip: 'zip',
             unzip: 'unzip',
@@ -167,10 +167,11 @@ function find(start_dir, pattern) {
     return files
 }
 
-async function hyphenate_zip(file, opt) {
-    let epub = new Epub(file, opt)
+async function hyphenate_zip(input, opt) {
+    let epub = new Epub(input, opt)
 
-    if (0 !== epub.unpack().status) throw new Error(`unpacking failed`)
+    if (0 !== epub.unpack().status)
+        throw new EpubHyphenError(epub.file, `unpacking failed`)
 
     let transformers = find(epub.workdir, "\\.x?html$")
         .map( async (file) => {
@@ -183,7 +184,8 @@ async function hyphenate_zip(file, opt) {
         })
     await Promise.all(transformers)
 
-    if (0 !== epub.repack().status) throw new Error(`repacking failed`)
+    if (0 !== epub.repack().status)
+        throw new EpubHyphenError(epub.file, `repacking failed`)
 
     return fs.readFileSync(epub.dest)
 }
