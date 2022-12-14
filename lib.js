@@ -31,17 +31,30 @@ function hyphenate_xhtml(xml, opt) {
 }
 
 function ignored_tags(str) {
-    let def = ["script", "template", "code", "var", "pre", "kbd",
+    let def = ["title", "script", "template", "code", "var", "pre", "kbd",
                "textarea", "tt", "xmp", "samp"]
     let from_user = (str || '').split(',').map(s => s.trim()).filter(Boolean)
     return def.concat(from_user)
 }
 
+function hypher_engine_loader() {
+    let engines = {}
+    return language => {
+        language = language || 'en'
+        language = language === 'en' ? 'en-us' : language
+
+        if ( !(language in engines)) {
+            let lang = require(`hyphenation.${language}`)
+            engines[language] = new Hypher(lang)
+        }
+        return engines[language]
+    }
+}
+
+let hypher_engine = hypher_engine_loader()
+
 function hyphenate_string(text, language) {
-    language = language || 'en'
-    language = language === 'en' ? 'en-us' : language
-    let lang = require(`hyphenation.${language}`)
-    let engine = new Hypher(lang)
+    let engine = hypher_engine(language)
 //    console.error(language, engine.hyphenateText(text))
     return engine.hyphenateText(text)
 }
@@ -108,27 +121,71 @@ class Epub {
         this.workdir = fs.mkdtempSync(this.opt.workdir_prefix)
         this.logfile = fs.openSync(path.join(this.workdir, 'log.txt'), 'w+')
         this.epubdir = path.join(this.workdir, 'files')
+        this.dest = path.join(this.workdir, path.basename(this.file))
 
         process.on('exit', this.cleanup.bind(this))
     }
 
     cleanup() {
+        if (this.log.enabled) return
+
         this.log('cleanup')
-//        fs.rmdirSync(this.workdir, { recursive: true, force: true })
+        fs.rmdirSync(this.workdir, { recursive: true, force: true })
     }
 
-    unzip() {
+    unpack() {
         this.log(`unpack ${this.file} to ${this.epubdir}`)
-        spawnSync(this.opt.unzip, [this.file, '-d', this.epubdir],
+        return spawnSync(this.opt.unzip, [this.file, '-d', this.epubdir],
                   { stdio: [0, this.logfile, this.logfile] })
+    }
+
+    repack() {
+        this.log(`packing into ${this.dest}`)
+        let orig_dir = process.cwd()
+        let dest = path.resolve(this.dest)
+
+        process.chdir(this.epubdir)
+        let exit_code = spawnSync(this.opt.zip,
+                                  ['-X', '-r', dest, 'mimetype', '.'],
+                                  { stdio: [0, this.logfile, this.logfile] })
+        process.chdir(orig_dir)
+        return exit_code
     }
 }
 
-function hyphenate_zip(file, opt) {
-    let epub = new Epub(file, opt)
-    epub.unzip()
+function find(start_dir, pattern) {
+    let all = fs.readdirSync(start_dir).map( v => path.join(start_dir, v))
+    let files = all.filter( v => {
+        return v.match(pattern) && fs.statSync(v).isFile()
+    })
 
-    return ''
+    all.filter( v => fs.statSync(v).isDirectory())
+        .forEach( dir => {
+            files = files.concat(find(dir, pattern))
+        })
+
+    return files
+}
+
+async function hyphenate_zip(file, opt) {
+    let epub = new Epub(file, opt)
+
+    if (0 !== epub.unpack().status) throw new Error(`unpacking failed`)
+
+    let transformers = find(epub.workdir, "\\.x?html$")
+        .map( async (file) => {
+            epub.log(file)
+            let xml = { file, text: fs.readFileSync(file).toString() }
+            let dest = file + '.new'
+            let text = await hyphenate_xhtml(xml, opt)
+            fs.writeFileSync(dest, text)
+            fs.renameSync(dest, file)
+        })
+    await Promise.all(transformers)
+
+    if (0 !== epub.repack().status) throw new Error(`repacking failed`)
+
+    return fs.readFileSync(epub.dest)
 }
 
 module.exports = { is_zip, hyphenate_zip, hyphenate_xhtml, EpubHyphenError }

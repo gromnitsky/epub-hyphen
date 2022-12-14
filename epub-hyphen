@@ -58,7 +58,7 @@ function read(file) {
             if (is_zip) {
                 if (zip_allowed) {
                     // close the stream, because we process the file
-                    // in Epub.unzip() later on
+                    // in Epub#unzip() later on
                     stream.close()
                 } else {
                     stream.destroy(new Error("no zip data allowed from stdin"))
