@@ -17,6 +17,10 @@
     "bin": {
         "epub-hyphen": "./epub-hyphen"
     },
+    "files": [
+        "epub-hyphen",
+        "lib.js"
+    ],
     "dependencies": {
         "commander": "~9.4.1",
         "hyphenation.be": "~0.2.1",
