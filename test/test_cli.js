@@ -3,10 +3,7 @@
 let assert = require('assert')
 let {spawnSync} = require('child_process')
 let fs = require('fs')
-
-function mktemp(template) {
-    return template + '.' + crypto.randomBytes(3).toString('hex') + '.tmp'
-}
+let crypto = require('crypto')
 
 suite('Invalid Input', function() {
     test('xhtml', function() {
@@ -76,4 +73,45 @@ suite('xhtml', function() {
 </body>`)
     })
 
+    test('ignore <p> and <h1>', function() {
+        let r = spawnSync('./epub-hyphen', ['-i', 'p,h1', 'test/data/3-lang.xml'])
+        assert.equal(r.stdout.toString(), `<?xml version="1.0"?>
+<body>
+  <h1>untitled</h1>
+  <h2 lang="uk">ди­хлор­ди­фе­ніл­три­хлор­ме­тил­ме­тан</h2>
+  <h3>sec­tion</h3>
+  <p>righteousness &gt; <span lang="it">immoralità</span></p>
+  <p>paragraph</p>
+</body>`)
+    })
+
+})
+
+function sha1(buf) {
+    return crypto.createHash('sha1').update(buf).digest('hex')
+}
+
+function mktemp(template) {
+    return template + '.' + crypto.randomBytes(3).toString('hex') + '.tmp'
+}
+
+suite('epub', function() {
+    test('smoke', function() {
+        let r = spawnSync('./epub-hyphen', ['test/data/1.epub'])
+        assert.equal(r.status, 0)
+        r = spawnSync('bsdtar', ['xf','-','-O','ch01.xhtml'], {input: r.stdout})
+        // ./epub-hyphen test/data/1.epub | bsdtar xf - -O ch01.xhtml | sha1sum
+        assert.equal(sha1(r.stdout), '2ced4ee70db5f85837d39c954c6646c91e759396')
+    })
+
+    test('already hyphenated', function() {
+        let r = spawnSync('./epub-hyphen', ['test/data/1.epub'])
+        assert.equal(r.status, 0)
+        let tmp = mktemp('1.epub')
+        fs.writeFileSync(tmp, r.stdout)
+
+        r = spawnSync('./epub-hyphen', [tmp])
+        assert.match(r.stderr.toString(), /already hyphenated/)
+        fs.unlinkSync(tmp)
+    })
 })
