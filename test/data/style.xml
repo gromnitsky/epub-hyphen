@@ -1,0 +1,7 @@
+<style>
+  p > span { color: red; }
+  p &gt; span { font-style: italic; }
+<![CDATA[
+  p > span { color: blue; }
+]]>
+</style>
