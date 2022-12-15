@@ -1,10 +1,11 @@
 let fs = require('fs')
 let os = require('os')
 let path = require('path')
+let spawnSync = require('child_process').spawnSync
 let xamel = require('xamel')
 let CData = require('xamel/lib/xml').CData
 let Hypher = require('hypher')
-let spawnSync = require('child_process').spawnSync
+let pkg = require('./package.json')
 
 function is_zip(chunks) {
     let buf = Buffer.concat(chunks)
@@ -127,6 +128,7 @@ class Epub {
         this.logfile = fs.openSync(path.join(this.workdir, 'log.txt'), 'w+')
         this.epubdir = path.join(this.workdir, 'files')
         this.dest = path.join(this.workdir, path.basename(this.file))
+        this.mark = path.join(this.epubdir, 'META-INF', 'epub-hyphen.json')
 
         process.on('exit', this.cleanup.bind(this))
     }
@@ -171,6 +173,15 @@ class Epub {
             return doc.find('package/*/dc:language')?.children[0]?.text()
         })
     }
+
+    mark_as_hyphenated() {
+        let info = Object.assign({ user_agent: user_agent() }, this.opt)
+        fs.writeFileSync(this.mark, JSON.stringify(info))
+    }
+}
+
+function user_agent() {
+    return `${pkg.name}/${pkg.version} (${process.platform}; ${process.arch}) node/${process.versions.node}`
 }
 
 // an equivalent to `find start_dir -name pattern`
@@ -194,6 +205,9 @@ async function hyphenate_zip(input, opt) {
     if (0 !== epub.unpack().status)
         throw new EpubHyphenError(epub.file, `unpacking failed`)
 
+    if (fs.existsSync(epub.mark))
+        throw new EpubHyphenError(epub.file, 'already hyphenated')
+
     epub.log('-l: ' + opt.l)
     if (!opt.l) {
         let lang = await epub.guess_lang()
@@ -211,6 +225,8 @@ async function hyphenate_zip(input, opt) {
             fs.renameSync(dest, file)
         })
     await Promise.all(transformers)
+
+    epub.mark_as_hyphenated()
 
     if (0 !== epub.repack().status)
         throw new EpubHyphenError(epub.file, `repacking failed`)
