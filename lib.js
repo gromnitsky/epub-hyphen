@@ -11,22 +11,22 @@ function is_zip(chunks) {
     return buf.length > 2 && buf.slice(0, 2).toString() === "PK"
 }
 
-function hyphenate_xhtml(input, opt) {
+function parse_xml(input) {
     return new Promise( (resolve, reject) => {
-        xamel.parse(input.text, {trim: false, cdata: true}, function(err, doc) {
-            if (err) {
-                reject(new EpubHyphenError(input.file, err))
-                return
-            }
-
-            try {
-                transform(doc, ignored_tags(opt.i), hyphenate_string, opt.l)
-            } catch (err) {
-                reject(new EpubHyphenError(input.file, err))
-            }
-
-            resolve(xamel.serialize(doc))
+        xamel.parse(input.text, {trim: false, cdata: true}, (err, result) => {
+            err ? reject(new EpubHyphenError(input.file, err)) : resolve(result)
         })
+    })
+}
+
+function hyphenate_xhtml(input, opt) {
+    return parse_xml(input).then( doc => {
+        try {
+            transform(doc, ignored_tags(opt.i), hyphenate_string, opt.l)
+        } catch (err) {
+            throw new EpubHyphenError(input.file, err)
+        }
+        return xamel.serialize(doc)
     })
 }
 
@@ -156,8 +156,24 @@ class Epub {
         process.chdir(orig_dir)
         return exit_code
     }
+
+    parse_xml_file(file) {
+        let input = { file, text: fs.readFileSync(file).toString() }
+        return parse_xml(input)
+    }
+
+    guess_lang() {              // after #unpack()
+        let container_xml = path.join(this.epubdir, 'META-INF', 'container.xml')
+        return this.parse_xml_file(container_xml).then( doc => {
+            let file = doc.find('container/rootfiles/rootfile').children[0].attrs['full-path']
+            return path.join(this.epubdir, file)
+        }).then(this.parse_xml_file).then( doc => {
+            return doc.find('package/*/dc:language')?.children[0]?.text()
+        })
+    }
 }
 
+// an equivalent to `find start_dir -name pattern`
 function find(start_dir, pattern) {
     let all = fs.readdirSync(start_dir).map( v => path.join(start_dir, v))
     let files = all.filter( v => {
@@ -177,6 +193,13 @@ async function hyphenate_zip(input, opt) {
 
     if (0 !== epub.unpack().status)
         throw new EpubHyphenError(epub.file, `unpacking failed`)
+
+    epub.log('-l: ' + opt.l)
+    if (!opt.l) {
+        let lang = await epub.guess_lang()
+        epub.log('metadata lang: ' + lang)
+        opt.l = lang
+    }
 
     let transformers = find(epub.workdir, "\\.x?html$")
         .map( async (file) => {
