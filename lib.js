@@ -69,8 +69,10 @@ function transform(node, ignored_tags, callback, language) {
             node.children[idx] = callback(kid, language)
 
         } else if (kid.constructor.name === 'Tag') {
+            // could do the same for <script>,
+            // but kindles ignore JS, so who cares
             if (kid.name === 'style') {
-                protect_style(kid)
+                wrap_contents_in_cdata(kid)
                 continue
             }
 
@@ -81,7 +83,7 @@ function transform(node, ignored_tags, callback, language) {
     }
 }
 
-function protect_style(node) {
+function wrap_contents_in_cdata(node) {
     let text = node.text()
     // either a node has an empty content or it's been CDATA'ed already
     if (!text.trim().length) return
@@ -92,8 +94,11 @@ function protect_style(node) {
             throw new Error(`<style> can't have descendent tags, but it has <${kid.name}>`)
     })
 
-    // FIXME: existing CDATA may be interleaved with text
-    node.children = [new CData(text)]
+    // existing CDATA may be interleaved with text
+    let concatination = node.children.map( kid => {
+        return (kid instanceof CData) ? kid.rawData : kid
+    }).join('')
+    node.children = [new CData(concatination)]
 }
 
 function is_str(obj) {
