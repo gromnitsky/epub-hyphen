@@ -10,8 +10,10 @@ let lib = require('./lib')
 program
     .version(pkg.version)
     .description(pkg.description)
+    .usage('[options] input [-o output]')
     .option('-l <str>', "a 2-letter default language, if <html lang='xx'> attribute is absent; this does NOT override already present lang= attributes")
     .option('-i <str>', 'a comma-separated list of tags to ignore')
+    .option('-o <str>', 'an output file name (overwrite the contents)')
     .option('--lang-list', 'list all supported languages')
 
 if (!log.enabled) program.addHelpText('afterAll', `\nset NODE_DEBUG=${pkg.name} to enable debug log`)

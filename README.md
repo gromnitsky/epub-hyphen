@@ -11,7 +11,7 @@ Reqs:
 
 ~~~
 $ ./epub-hyphen -h
-Usage: epub-hyphen [options]
+Usage: epub-hyphen [options] input [-o output]
 
 Hyphenate text nodes in epub or xhtml files
 
@@ -21,6 +21,7 @@ Options:
                  absent; this does NOT override already present lang=
                  attributes
   -i <str>       a comma-separated list of tags to ignore
+  -o <str>       an output file name (overwrite the contents)
   --lang-list    list all supported languages
   -h, --help     display help for command
 

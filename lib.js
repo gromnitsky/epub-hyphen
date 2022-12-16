@@ -27,7 +27,13 @@ function hyphenate_xhtml(input, opt) {
         } catch (err) {
             throw new EpubHyphenError(input.file, err)
         }
-        return xamel.serialize(doc)
+
+        let r = xamel.serialize(doc)
+        if (opt.o) {
+            fs.writeFileSync(opt.o, r)
+            return ''
+        }
+        return r
     })
 }
 
@@ -137,6 +143,7 @@ class Epub {
         if (this.log.enabled) return
 
         this.log('cleanup')
+        fs.closeSync(this.logfile)
         fs.rmdirSync(this.workdir, { recursive: true, force: true })
     }
 
@@ -146,12 +153,14 @@ class Epub {
                   { stdio: [0, this.logfile, this.logfile] })
     }
 
-    repack() {
-        this.log(`packing into ${this.dest}`)
+    repack(dest) {
         let orig_dir = process.cwd()
-        let dest = path.resolve(this.dest)
+        dest = path.resolve(dest || this.dest)
+        this.log(`repacking into ${dest}`)
+        fs.writeSync(this.logfile, `\nrepacking into ${dest}\n`)
 
         process.chdir(this.epubdir)
+        try { fs.unlinkSync(dest) } catch (_) {/* ignore errors */}
         let exit_code = spawnSync(this.opt.zip,
                                   ['-X', '-r', dest, 'mimetype', '.'],
                                   { stdio: [0, this.logfile, this.logfile] })
@@ -220,7 +229,8 @@ async function hyphenate_zip(input, opt) {
             epub.log(file)
             let xml = { file, text: fs.readFileSync(file).toString() }
             let dest = file + '.new'
-            let text = await hyphenate_xhtml(xml, opt)
+            let local_opt = Object.assign({}, opt, {o: null})
+            let text = await hyphenate_xhtml(xml, local_opt)
             fs.writeFileSync(dest, text)
             fs.renameSync(dest, file)
         })
@@ -228,10 +238,10 @@ async function hyphenate_zip(input, opt) {
 
     epub.mark_as_hyphenated()
 
-    if (0 !== epub.repack().status)
+    if (0 !== epub.repack(opt.o).status)
         throw new EpubHyphenError(epub.file, `repacking failed`)
 
-    return fs.readFileSync(epub.dest)
+    return opt.o ? '' : fs.readFileSync(epub.dest)
 }
 
 module.exports = { is_zip, hyphenate_zip, hyphenate_xhtml, EpubHyphenError }
