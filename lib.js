@@ -114,16 +114,15 @@ function is_str(obj) {
 
 class EpubHyphenError extends Error {
     constructor(file, error, prepended_message) {
+        super()
         let msg = error
-        if ( (error instanceof Error) && prepended_message) {
-            msg = prepended_message + ': ' + error.message
-        } else if (error instanceof Error) {
+        if (error instanceof Error) {
             msg = error.message
+            if (prepended_message) msg = prepended_message + ': ' + msg
+            this.stack = error.stack
         }
 
-        super()
         this.message = `${file}: ${msg}`
-        if (error instanceof Error) this.stack = error.stack
     }
 }
 
