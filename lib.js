@@ -113,9 +113,17 @@ function is_str(obj) {
 }
 
 class EpubHyphenError extends Error {
-    constructor(file, msg) {
+    constructor(file, error, prepended_message) {
+        let msg = error
+        if ( (error instanceof Error) && prepended_message) {
+            msg = prepended_message + ': ' + error.message
+        } else if (error instanceof Error) {
+            msg = error.message
+        }
+
         super()
-        this.message = `${file}: ${msg instanceof Error ? msg.message : msg}`
+        this.message = `${file}: ${msg}`
+        if (error instanceof Error) this.stack = error.stack
     }
 }
 
@@ -211,8 +219,9 @@ function find(start_dir, pattern) {
 async function hyphenate_zip(input, opt) {
     let epub = new Epub(input, opt)
 
-    if (0 !== epub.unpack().status)
-        throw new EpubHyphenError(epub.file, `unpacking failed`)
+    let status = epub.unpack()
+    if (0 !== status.status)
+        throw new EpubHyphenError(epub.file, status.error, 'unpacking failed')
 
     if (fs.existsSync(epub.mark))
         throw new EpubHyphenError(epub.file, 'already hyphenated')
@@ -238,8 +247,9 @@ async function hyphenate_zip(input, opt) {
 
     epub.mark_as_hyphenated()
 
-    if (0 !== epub.repack(opt.o).status)
-        throw new EpubHyphenError(epub.file, `repacking failed`)
+    status = epub.repack(opt.o)
+    if (0 !== status.status)
+        throw new EpubHyphenError(epub.file, status.error, 'repacking failed')
 
     return opt.o ? '' : fs.readFileSync(epub.dest)
 }
