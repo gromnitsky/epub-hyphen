@@ -37,11 +37,18 @@ function hyphenate_xhtml(input, opt) {
     })
 }
 
+const IGNORED_TAGS = [
+    "title", "script", "template", "code", "var", "pre",
+    "kbd", "textarea", "tt", "xmp", "samp"
+]
+
 function ignored_tags(str) {
-    let def = ["title", "script", "template", "code", "var", "pre", "kbd",
-               "textarea", "tt", "xmp", "samp"]
     let from_user = (str || '').split(',').map(s => s.trim()).filter(Boolean)
-    return def.concat(from_user)
+    return IGNORED_TAGS.concat(from_user).map( v => {
+        let r = v.split('.').slice(0, 2)
+        r[1] = r[1] || ''
+        return r
+    })
 }
 
 function hypher_engine_loader() {
@@ -91,18 +98,14 @@ function transform(node, ignored_tags, callback, language) {
     }
 }
 
-// `tag` may be a bare string like 'p',
-// or a string with a css class name 'p.foo'
+// `tag` is an array tuple [name, class]
 function node_match(node, tag) {
-    let [tag_name, tag_class] = tag.split('.')
+    let [tag_name, tag_class] = tag
     if (node.name !== tag_name) return false
 
-    if (is_str(tag_class)) {
-        let classes = node.attrs?.class?.split(/\s+/)?.filter(Boolean) || []
-        if (classes.length === 0 && tag_class.length === 0) return true
-        return !(-1 === classes.indexOf(tag_class))
-    }
-    return true
+    let classes = node.attrs?.class?.split(/\s+/)?.filter(Boolean) || []
+    if (classes.length === 0 && tag_class.length === 0) return true
+    return !(-1 === classes.indexOf(tag_class))
 }
 
 function wrap_contents_in_cdata(node) {
@@ -268,4 +271,6 @@ async function hyphenate_zip(input, opt) {
     return opt.o ? '' : fs.readFileSync(epub.dest)
 }
 
-module.exports = { is_zip, hyphenate_zip, hyphenate_xhtml, node_match }
+module.exports = {
+    is_zip, hyphenate_zip, hyphenate_xhtml, node_match, IGNORED_TAGS
+}
