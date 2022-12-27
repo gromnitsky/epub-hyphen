@@ -42,8 +42,7 @@ $ echo '<p>дихлордифенілтрихлорметилметан</p>' | .
 <p>ди-хлор-ди-фе-ніл-три-хлор-ме-тил-ме-тан</p>
 ~~~
 
-The contents of some tags is never hyphenated (`code`, `pre`, &c, see
-lib.js):
+The contents of some tags is never hyphenated (`code`, `pre`, &c):
 
 ~~~
 $ echo '<p><code>foobar</code>foobar</p>' | ./epub-hyphen
@@ -64,7 +63,3 @@ Hyphenate a epub:
 
 v1.0.0 is a complete rewrite; its cli is incompatible with 0.0.x
 versions.
-
-## License
-
-AGPL-3.0
