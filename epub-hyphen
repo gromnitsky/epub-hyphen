@@ -11,10 +11,11 @@ program
     .version(pkg.version)
     .description(pkg.description)
     .usage('[options] input [-o output]')
-    .option('-l <str>', "a 2-letter default language, if <html lang='xx'> attribute is absent; this does NOT override already present lang= attributes")
-    .option('-i <str>', 'a comma-separated list of tags to ignore; a tag can optionally include a class name, e.g. `h1,p.program`')
+    .option('-l <str>', "a 2-letter default language in case <html lang='xx'> attribute is absent; this does NOT override already present lang= attributes")
+    .option('-i <str>', 'an additional comma-separated list of tags to ignore; a tag can optionally include a class name, e.g. `h1,p.foo`')
     .option('-o <str>', 'an output file name (overwrite the contents)')
-    .option('--lang-list', 'list all supported languages')
+    .option('--lang-list', 'print all supported languages')
+    .option('--ignored-tags-list', 'print the default ignored tags list')
 
 if (!log.enabled) program.addHelpText('afterAll', `\nset NODE_DEBUG=${pkg.name} to enable debug log`)
 program.parse()
@@ -23,6 +24,11 @@ if (program.opts().langList) {
     console.log(Object.keys(pkg.dependencies)
                 .filter( v => /^hyphenation\./.test(v))
                 .map( v => v.replace(/^hyphenation\./, '')).join`\n`)
+    process.exit()
+}
+
+if (program.opts().ignoredTagsList) {
+    console.log(lib.IGNORED_TAGS.join`\n`)
     process.exit()
 }
 
