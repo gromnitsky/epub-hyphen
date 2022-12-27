@@ -84,10 +84,25 @@ function transform(node, ignored_tags, callback, language) {
             }
 
             let lang = kid.attrs.lang || language
-            if (-1 === ignored_tags.indexOf(kid.name))
+            if (!ignored_tags.some( tag => node_match(kid, tag))) {
                 transform(kid, ignored_tags, callback, lang)
+            }
         }
     }
+}
+
+// `tag` may be a bare string like 'p',
+// or a string with a css class name 'p.foo'
+function node_match(node, tag) {
+    let [tag_name, tag_class] = tag.split('.')
+    if (node.name !== tag_name) return false
+
+    if (is_str(tag_class)) {
+        let classes = node.attrs?.class?.split(/\s+/)?.filter(Boolean) || []
+        if (classes.length === 0 && tag_class.length === 0) return true
+        return !(-1 === classes.indexOf(tag_class))
+    }
+    return true
 }
 
 function wrap_contents_in_cdata(node) {
@@ -253,4 +268,4 @@ async function hyphenate_zip(input, opt) {
     return opt.o ? '' : fs.readFileSync(epub.dest)
 }
 
-module.exports = { is_zip, hyphenate_zip, hyphenate_xhtml, EpubHyphenError }
+module.exports = { is_zip, hyphenate_zip, hyphenate_xhtml, node_match }

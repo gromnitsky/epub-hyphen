@@ -93,6 +93,12 @@ suite('xhtml', function() {
 </body>`)
     })
 
+    test('ignore <p class="program">', function() {
+        let r = spawnSync('./epub-hyphen', ['-i', 'p.program', 'test/data/en1.bare.xml'])
+        assert.equal(r.stdout.toString(), `<?xml version="1.0"?>
+<p><code>foobar</code>foo­bar</p><p>sec­ond para­graph</p><p class="program code">foobar</p>`)
+    })
+
     test('-o', function() {
         let tmp = mktemp('foobar.xml')
         let input = "<p>foobar</p>"

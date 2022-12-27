@@ -20,7 +20,8 @@ Options:
   -l <str>       a 2-letter default language, if <html lang='xx'> attribute is
                  absent; this does NOT override already present lang=
                  attributes
-  -i <str>       a comma-separated list of tags to ignore
+  -i <str>       a comma-separated list of tags to ignore; a tag can optionally
+                 include a class name, e.g. `h1,p.program`
   -o <str>       an output file name (overwrite the contents)
   --lang-list    list all supported languages
   -h, --help     display help for command

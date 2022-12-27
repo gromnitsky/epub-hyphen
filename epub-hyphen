@@ -12,7 +12,7 @@ program
     .description(pkg.description)
     .usage('[options] input [-o output]')
     .option('-l <str>', "a 2-letter default language, if <html lang='xx'> attribute is absent; this does NOT override already present lang= attributes")
-    .option('-i <str>', 'a comma-separated list of tags to ignore')
+    .option('-i <str>', 'a comma-separated list of tags to ignore; a tag can optionally include a class name, e.g. `h1,p.program`')
     .option('-o <str>', 'an output file name (overwrite the contents)')
     .option('--lang-list', 'list all supported languages')
 
